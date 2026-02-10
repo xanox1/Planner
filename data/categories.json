@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Kleine Taak",
+    "allowCheck": true,
+    "color": "mint"
+  },
+  {
+    "name": "Gewoonte",
+    "allowCheck": true,
+    "color": "rose"
+  },
+  {
+    "name": "Gezin",
+    "allowCheck": true,
+    "color": "lavender"
+  },
+  {
+    "name": "Opruimen",
+    "allowCheck": true,
+    "color": "peach"
+  },
+  {
+    "name": "Focus",
+    "allowCheck": false,
+    "color": "sky"
+  },
+  {
+    "name": "Rust",
+    "allowCheck": false,
+    "color": "sage"
+  },
+  {
+    "name": "Werk",
+    "allowCheck": false,
+    "color": "aqua"
+  },
+  {
+    "name": "Sport",
+    "allowCheck": true,
+    "color": "lilac"
+  }
+]

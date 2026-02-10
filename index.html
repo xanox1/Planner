@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamische Dagplanning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .task-row:hover .action-btns { opacity: 1; }
+        .completed { background-color: #f8fafc; color: #94a3b8; }
+        .completed .task-text { text-decoration: line-through; }
+        .badge-habit { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-focus { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-clean { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-small { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-relationship { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .drag-handle { cursor: grab; color: #cbd5e1; }
+        .drag-handle:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.3; background: #e2e8f0; }
+        .modal-backdrop { background: rgba(15, 23, 42, 0.6); }
+        .overlap td { background-color: #fee2e2; }
+        .checkmark {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            border: 2px solid #cbd5e1;
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 0 0 0 rgba(99, 102, 241, 0.2);
+        }
+        .checkmark svg { opacity: 0; transform: scale(0.6); transition: all 0.2s ease; }
+        .check-input:checked + .checkmark {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            box-shadow: 0 6px 14px rgba(79, 70, 229, 0.25);
+        }
+        .check-input:checked + .checkmark svg { opacity: 1; transform: scale(1); color: white; }
+        .check-label { cursor: pointer; }
+        .check-input:focus-visible + .checkmark { outline: 2px solid #a5b4fc; outline-offset: 2px; }
+        .gap-row td { background-color: #f1f5f9; color: #64748b; font-style: italic; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+            <!-- Header -->
+            <div class="bg-indigo-700 p-8 text-white">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight">Dagplanning Jeroen</h1>
+                        <div class="mt-2 flex items-center gap-2">
+                            <p class="text-indigo-100 opacity-90 italic" id="quoteDisplay">Inspiratie wordt geladen...</p>
+                            <button onclick="loadQuote()" class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-500 border border-indigo-400" aria-label="Nieuwe quote" title="Nieuwe quote">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-white">
+                                    <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.186 2.36.75.75 0 00-1.06 1.06 7 7 0 0011.682-3.002h1.702a.75.75 0 00.53-1.28l-2.5-2.5a.75.75 0 00-1.06 0l-2.5 2.5a.75.75 0 00.53 1.28h1.362zM4.688 8.576a5.5 5.5 0 019.186-2.36.75.75 0 001.06-1.06A7 7 0 003.252 8.158H1.55a.75.75 0 00-.53 1.28l2.5 2.5a.75.75 0 001.06 0l2.5-2.5a.75.75 0 00-.53-1.28H4.688z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <p class="text-lg font-medium" id="dateDisplay"></p>
+                        <div class="flex gap-2 mt-2">
+                            <button id="actionsToggle" onclick="toggleActionsColumn()" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 transition" aria-label="Acties tonen" title="Acties tonen">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-white">
+                                    <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 14a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
+                                </svg>
+                            </button>
+                            <button onclick="exportTasks()" class="backup-action hidden text-[10px] bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-2 py-1 rounded font-bold uppercase tracking-wider transition">Back-up downloaden</button>
+                            <button onclick="document.getElementById('importFile').click()" class="backup-action hidden text-[10px] bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-2 py-1 rounded font-bold uppercase tracking-wider transition">Back-up inladen</button>
+                            <input type="file" id="importFile" class="hidden" accept=".json" onchange="importTasks(event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <!-- Task Input Form -->
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-8">
+                    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Nieuwe taak toevoegen</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">TIJD</label>
+                            <input type="time" id="taskTime" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">ACTIVITEIT</label>
+                            <input type="text" id="taskName" placeholder="Bijv. Wandelen" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">DUUR (MIN)</label>
+                            <input type="number" id="taskDuration" placeholder="30" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                        </div>
+                        <div class="md:col-span-1">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">TYPE</label>
+                                <button onclick="openCategoryModal()" class="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Beheer</button>
+                            </div>
+                            <select id="taskType" class="w-full rounded-lg border-slate-300 p-2.5 border"></select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="addTask()" class="w-full bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition font-bold shadow-md">Toevoegen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+                    <table class="min-w-full divide-y divide-slate-200" id="planningTable">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-4 w-10"></th>
+                                <th class="px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase">Tijd</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase">Taak</th>
+                                <th class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase">Duur</th>
+                                <th class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase">Gereed</th>
+                                <th class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase actions-col hidden">Acties</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200" id="taskList"></tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <button onclick="resetAllTasks()" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition">Reset Status</button>
+                    <span id="saveStatus" class="text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full opacity-0 transition-opacity uppercase font-bold tracking-widest">Opgeslagen</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto mt-8">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
+                <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wider">Dagelijkse historie</h2>
+                <p class="text-xs text-slate-400 mt-1">Overzicht per dag met afgevinkte en niet-afgevinkte taken.</p>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4" id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Edit Modal -->
+    <div id="historyEditModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="absolute inset-0 modal-backdrop" onclick="closeHistoryEditModal()"></div>
+        <div class="relative bg-white w-full max-w-3xl mx-4 rounded-2xl shadow-2xl border border-slate-200">
+            <div class="bg-indigo-700 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                <h3 class="text-lg font-bold">Historie bewerken</h3>
+                <button onclick="closeHistoryEditModal()" class="text-indigo-100 hover:text-white">✕</button>
+            </div>
+            <div class="p-6">
+                <p class="text-xs text-slate-500 mb-4">Sleep taken tussen links en rechts om ze te corrigeren.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">AFGEVINKT</label>
+                        <div id="historyCheckedList" class="min-h-[220px] rounded-lg border border-slate-300 p-2.5 space-y-2 bg-white"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">NIET AFGEVINKT</label>
+                        <div id="historyUncheckedList" class="min-h-[220px] rounded-lg border border-slate-300 p-2.5 space-y-2 bg-white"></div>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button onclick="closeHistoryEditModal()" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200">Annuleren</button>
+                    <button onclick="saveHistoryEdit()" class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">Opslaan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="absolute inset-0 modal-backdrop" onclick="closeEditModal()"></div>
+        <div class="relative bg-white w-full max-w-3xl mx-4 rounded-2xl shadow-2xl border border-slate-200">
+            <div class="bg-indigo-700 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                <h3 class="text-lg font-bold">Taak bewerken</h3>
+                <button onclick="closeEditModal()" class="text-indigo-100 hover:text-white">✕</button>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">TIJD</label>
+                        <input type="time" id="editTaskTime" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">ACTIVITEIT</label>
+                        <input type="text" id="editTaskName" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">DUUR (MIN)</label>
+                        <input type="number" id="editTaskDuration" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">TYPE</label>
+                        <select id="editTaskType" class="w-full rounded-lg border-slate-300 p-2.5 border"></select>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button onclick="closeEditModal()" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200">Annuleren</button>
+                    <button onclick="saveEditTask()" class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">Opslaan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="absolute inset-0 modal-backdrop" onclick="closeCategoryModal()"></div>
+        <div class="relative bg-white w-full max-w-2xl mx-4 rounded-2xl shadow-2xl border border-slate-200">
+            <div class="bg-indigo-700 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                <h3 class="text-lg font-bold">Categorieën beheren</h3>
+                <button onclick="closeCategoryModal()" class="text-indigo-100 hover:text-white">✕</button>
+            </div>
+            <div class="p-6">
+                <div id="categoryList" class="space-y-3"></div>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+                    <div class="md:col-span-4">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">NIEUWE CATEGORIE</label>
+                        <input type="text" id="newCategoryName" class="w-full rounded-lg border-slate-300 p-2.5 border" placeholder="Bijv. Sport">
+                    </div>
+                    <div class="md:col-span-2">
+                        <button onclick="addCategory()" class="w-full bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition font-bold">Toevoegen</button>
+                    </div>
+                </div>
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button onclick="closeCategoryModal()" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200">Annuleren</button>
+                    <button onclick="saveCategories()" class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">Opslaan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Deze taken staan ALTIJD in de code als basis.
+        const defaultTasks = [
+            { id: 101, time: "06:00", name: "Tandenpoetsen & opfrissen", duration: 10, type: "Kleine Taak", completed: false },
+            { id: 102, time: "06:15", name: "Gezinsontbijt klaarmaken (Verrassing vrouw)", duration: 45, type: "Relatie", completed: false },
+            { id: 1, time: "19:30", name: "Woonkamer nalopen & stofzuigrobot aan", duration: 15, type: "Opruimen", completed: false },
+            { id: 2, time: "19:45", name: "Keuken volledig opruimen", duration: 30, type: "Gewoonte", completed: false },
+            { id: 3, time: "20:15", name: "Bedenken: hoe kan ik mijn vrouw vandaag helpen?", duration: 10, type: "Relatie", completed: false },
+            { id: 4, time: "22:30", name: "Tandenpoetsen & klaarmaken voor bed", duration: 10, type: "Kleine Taak", completed: false }
+        ];
+
+        const defaultCategories = [
+            { name: 'Kleine Taak', allowCheck: true, color: '' },
+            { name: 'Gewoonte', allowCheck: true, color: '' },
+            { name: 'Relatie', allowCheck: true, color: '' },
+            { name: 'Opruimen', allowCheck: true, color: '' },
+            { name: 'Focus', allowCheck: true, color: '' },
+            { name: 'Rust', allowCheck: true, color: '' }
+        ];
+        const pastelThemes = [
+            { key: 'mint', label: 'Mint', color: '#d9f7e6' },
+            { key: 'sky', label: 'Sky', color: '#dbeafe' },
+            { key: 'lavender', label: 'Lavender', color: '#ede9fe' },
+            { key: 'peach', label: 'Peach', color: '#ffedd5' },
+            { key: 'rose', label: 'Rose', color: '#ffe4e6' },
+            { key: 'lemon', label: 'Lemon', color: '#fef9c3' },
+            { key: 'aqua', label: 'Aqua', color: '#cffafe' },
+            { key: 'lilac', label: 'Lilac', color: '#f3e8ff' },
+            { key: 'sage', label: 'Sage', color: '#e2f7e1' },
+            { key: 'sand', label: 'Sand', color: '#f5f5dc' }
+        ];
+
+        let serverAvailable = false;
+        let tasks = [...defaultTasks];
+        let categories = [...defaultCategories];
+        let historyEntries = [];
+        let lastResetDate = null;
+
+        async function init() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('nl-NL', options);
+            loadQuote();
+            await loadFromServer();
+            await loadCategoriesFromServer();
+            await loadHistoryFromServer();
+            renderCategoryOptions();
+            renderTasks();
+            renderHistory();
+            initSortable();
+            checkDailyReset();
+            scheduleMidnightReset();
+        }
+
+        async function loadQuote() {
+            const quoteEl = document.getElementById('quoteDisplay');
+            try {
+                const response = await fetch(`/api/quote/random?t=${Date.now()}`, { cache: 'no-store' });
+                if (!response.ok) throw new Error('Quote fetch failed');
+                const data = await response.json();
+                if (Array.isArray(data) && data[0]?.q && data[0]?.a) {
+                    quoteEl.textContent = `“${data[0].q}” — ${data[0].a}`;
+                    return;
+                }
+            } catch (error) {
+                quoteEl.textContent = '“Maak vandaag bewust.”';
+            }
+        }
+
+        function initSortable() {
+            const el = document.getElementById('taskList');
+            Sortable.create(el, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: function() {
+                    const rows = Array.from(el.querySelectorAll('tr'));
+                    tasks = rows.map(row => tasks.find(t => t.id === parseInt(row.getAttribute('data-id'))));
+                    saveToStorage();
+                }
+            });
+        }
+
+        function addTask() {
+            const name = document.getElementById('taskName').value;
+            if (!name) return;
+            const timeValue = document.getElementById('taskTime').value;
+            tasks.push({
+                id: Date.now(),
+                time: timeValue,
+                name: name,
+                duration: document.getElementById('taskDuration').value,
+                type: document.getElementById('taskType').value,
+                completed: false
+            });
+            if (timeValue) {
+                tasks = sortTasksByTime(tasks);
+            }
+            saveAndRender();
+            document.getElementById('taskName').value = '';
+        }
+
+        function sortTasksByTime(list) {
+            return [...list].sort((a, b) => {
+                const aHasTime = Boolean(a.time);
+                const bHasTime = Boolean(b.time);
+                if (!aHasTime && !bHasTime) return 0;
+                if (!aHasTime) return 1;
+                if (!bHasTime) return -1;
+                const [ah, am] = a.time.split(':').map(Number);
+                const [bh, bm] = b.time.split(':').map(Number);
+                const aMinutes = ah * 60 + am;
+                const bMinutes = bh * 60 + bm;
+                return aMinutes - bMinutes;
+            });
+        }
+
+        function parseTimeToMinutes(time) {
+            if (!time) return null;
+            const [h, m] = time.split(':').map(Number);
+            if (Number.isNaN(h) || Number.isNaN(m)) return null;
+            return h * 60 + m;
+        }
+
+        function buildDisplayTasks(list) {
+            const display = [];
+            for (let i = 0; i < list.length; i++) {
+                const current = list[i];
+                display.push(current);
+
+                const next = list[i + 1];
+                if (!next) continue;
+                const currentStart = parseTimeToMinutes(current.time);
+                const nextStart = parseTimeToMinutes(next.time);
+                const currentDuration = parseInt(current.duration, 10);
+                if (currentStart === null || Number.isNaN(currentDuration) || nextStart === null) continue;
+                const currentEnd = currentStart + currentDuration;
+                const gap = nextStart - currentEnd;
+                if (gap > 0) {
+                    display.push({
+                        id: `gap-${current.id}-${next.id}`,
+                        isGap: true,
+                        duration: gap,
+                        name: 'Vrije tijd'
+                    });
+                }
+            }
+
+            const timed = list
+                .map(task => {
+                    const start = parseTimeToMinutes(task.time);
+                    const duration = parseInt(task.duration, 10);
+                    if (start === null || Number.isNaN(duration)) return null;
+                    return { id: task.id, start, duration };
+                })
+                .filter(Boolean)
+                .sort((a, b) => a.start - b.start);
+
+            if (timed.length) {
+                const first = timed[0];
+                const last = timed[timed.length - 1];
+                const lastEnd = last.start + last.duration;
+                const sleepDuration = (24 * 60 - lastEnd) + first.start;
+                if (sleepDuration > 0) {
+                    display.push({
+                        id: `sleep-${first.id}-${last.id}`,
+                        isGap: true,
+                        duration: sleepDuration,
+                        name: 'Slaap'
+                    });
+                }
+            }
+            return display;
+        }
+
+        function formatDuration(minutes) {
+            const total = parseInt(minutes, 10);
+            if (Number.isNaN(total)) return '';
+            const hours = Math.floor(total / 60);
+            const mins = total % 60;
+            if (hours && mins) return `${hours}u ${mins}m`;
+            if (hours) return `${hours}u`;
+            return `${mins}m`;
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveAndRender();
+        }
+
+        function resetAllTasks() {
+            tasks = tasks.map(t => ({ ...t, completed: false }));
+            saveAndRender();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveAndRender();
+        }
+
+        let editingTaskId = null;
+
+        function openEditModal(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            editingTaskId = id;
+            document.getElementById('editTaskTime').value = task.time || '';
+            document.getElementById('editTaskName').value = task.name || '';
+            document.getElementById('editTaskDuration').value = task.duration || '';
+            document.getElementById('editTaskType').value = task.type || 'Kleine Taak';
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            editingTaskId = null;
+        }
+
+        function saveEditTask() {
+            if (!editingTaskId) return;
+            const name = document.getElementById('editTaskName').value.trim();
+            if (!name) return;
+            const time = document.getElementById('editTaskTime').value;
+            const duration = document.getElementById('editTaskDuration').value;
+            const type = document.getElementById('editTaskType').value;
+
+            tasks = tasks.map(t => t.id === editingTaskId ? {
+                ...t,
+                name,
+                time,
+                duration,
+                type
+            } : t);
+
+            closeEditModal();
+            saveAndRender();
+        }
+
+        async function loadFromServer() {
+            try {
+                const response = await fetch('/api/tasks', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Server not available');
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    tasks = data.filter(item => item && typeof item === 'object');
+                    if (tasks.length !== data.length) {
+                        saveToServer();
+                    }
+                }
+                serverAvailable = true;
+            } catch (error) {
+                serverAvailable = false;
+            }
+        }
+
+        async function saveToServer() {
+            if (!serverAvailable) return;
+            try {
+                const cleanTasks = tasks.filter(item => item && typeof item === 'object');
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cleanTasks)
+                });
+                if (!response.ok) throw new Error('Server save failed');
+            } catch (error) {
+                serverAvailable = false;
+            }
+        }
+
+        async function loadCategoriesFromServer() {
+            try {
+                const response = await fetch('/api/categories', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Server not available');
+                const data = await response.json();
+                if (Array.isArray(data) && data.length) {
+                    categories = normalizeCategories(data);
+                } else {
+                    categories = [...defaultCategories];
+                }
+            } catch (error) {
+                categories = [...defaultCategories];
+            }
+        }
+
+        async function saveCategoriesToServer() {
+            if (!serverAvailable) return;
+            try {
+                const response = await fetch('/api/categories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(categories)
+                });
+                if (!response.ok) throw new Error('Server save failed');
+            } catch (error) {
+                serverAvailable = false;
+            }
+        }
+
+        async function loadHistoryFromServer() {
+            try {
+                const response = await fetch('/api/history', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Server not available');
+                const data = await response.json();
+                if (data && Array.isArray(data.entries)) {
+                    historyEntries = data.entries;
+                    lastResetDate = data.lastResetDate || null;
+                }
+            } catch (error) {
+                historyEntries = [];
+                lastResetDate = null;
+            }
+        }
+
+        async function saveHistoryToServer() {
+            if (!serverAvailable) return;
+            try {
+                const response = await fetch('/api/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entries: historyEntries, lastResetDate })
+                });
+                if (!response.ok) throw new Error('History save failed');
+            } catch (error) {
+                serverAvailable = false;
+            }
+        }
+
+        function showSaveStatus(message) {
+            const status = document.getElementById('saveStatus');
+            status.textContent = message;
+            status.style.opacity = "1";
+            setTimeout(() => status.style.opacity = "0", 1000);
+        }
+
+        function saveToStorage() {
+            saveToServer();
+            showSaveStatus(serverAvailable ? 'Opgeslagen (server)' : 'Niet opgeslagen');
+        }
+
+        function saveAndRender() {
+            saveToStorage();
+            renderTasks();
+        }
+
+        function getDateKey(date = new Date()) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function getYesterdayKey() {
+            const date = new Date();
+            date.setDate(date.getDate() - 1);
+            return getDateKey(date);
+        }
+
+        function buildHistoryEntry(dateKey) {
+            const checked = tasks.filter(t => t.completed);
+            const unchecked = tasks.filter(t => !t.completed);
+            return {
+                date: dateKey,
+                checkedCount: checked.length,
+                checkedTasks: checked.map(t => ({ id: t.id, name: t.name, time: t.time || '', duration: t.duration || '', type: t.type })),
+                uncheckedTasks: unchecked.map(t => ({ id: t.id, name: t.name, time: t.time || '', duration: t.duration || '', type: t.type }))
+            };
+        }
+
+        function checkDailyReset() {
+            const todayKey = getDateKey();
+            if (lastResetDate === todayKey) return;
+            const targetDate = lastResetDate ? getYesterdayKey() : getYesterdayKey();
+            if (!historyEntries.some(entry => entry.date === targetDate)) {
+                historyEntries.unshift(buildHistoryEntry(targetDate));
+                saveHistoryToServer();
+                renderHistory();
+            }
+            tasks = tasks.map(t => ({ ...t, completed: false }));
+            lastResetDate = todayKey;
+            saveToServer();
+            saveHistoryToServer();
+            renderTasks();
+        }
+
+        function scheduleMidnightReset() {
+            const now = new Date();
+            const next = new Date();
+            next.setHours(24, 0, 0, 0);
+            const ms = next - now;
+            setTimeout(() => {
+                const dateKey = getYesterdayKey();
+                historyEntries.unshift(buildHistoryEntry(dateKey));
+                lastResetDate = getDateKey();
+                tasks = tasks.map(t => ({ ...t, completed: false }));
+                saveHistoryToServer();
+                saveToServer();
+                renderHistory();
+                renderTasks();
+                setInterval(() => {
+                    const newDateKey = getYesterdayKey();
+                    historyEntries.unshift(buildHistoryEntry(newDateKey));
+                    lastResetDate = getDateKey();
+                    tasks = tasks.map(t => ({ ...t, completed: false }));
+                    saveHistoryToServer();
+                    saveToServer();
+                    renderHistory();
+                    renderTasks();
+                }, 24 * 60 * 60 * 1000);
+            }, ms);
+        }
+
+        function renderCategoryOptions() {
+            const taskSelect = document.getElementById('taskType');
+            const editSelect = document.getElementById('editTaskType');
+            const currentTaskValue = taskSelect.value;
+            const currentEditValue = editSelect.value;
+            const options = categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+            taskSelect.innerHTML = options;
+            editSelect.innerHTML = options;
+            if (currentTaskValue) taskSelect.value = currentTaskValue;
+            if (currentEditValue) editSelect.value = currentEditValue;
+        }
+
+        function normalizeCategories(data) {
+            return data
+                .map(item => {
+                    if (typeof item === 'string') {
+                        return { name: item, allowCheck: true, color: '' };
+                    }
+                    if (item && typeof item.name === 'string') {
+                        return {
+                            name: item.name,
+                            allowCheck: item.allowCheck !== false,
+                            color: item.color || ''
+                        };
+                    }
+                    return null;
+                })
+                .filter(Boolean);
+        }
+
+        function getCategorySettings(name) {
+            return categories.find(cat => cat.name === name) || { name, allowCheck: true, color: '' };
+        }
+
+        function getCategoryColor(value) {
+            if (!value) return '';
+            if (value.startsWith('#')) return value;
+            const theme = pastelThemes.find(t => t.key === value);
+            return theme ? theme.color : '';
+        }
+
+        function openCategoryModal() {
+            renderCategoryManager();
+            const modal = document.getElementById('categoryModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCategoryModal() {
+            const modal = document.getElementById('categoryModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('newCategoryName').value = '';
+        }
+
+        function renderCategoryManager() {
+            const list = document.getElementById('categoryList');
+            list.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3';
+                row.innerHTML = `
+                    <input type="text" value="${cat.name}" data-original="${cat.name}" class="flex-1 rounded-lg border-slate-300 p-2.5 border" oninput="updateCategoryName(${index}, this.value)">
+                    <label class="flex items-center gap-2 text-xs text-slate-500">
+                        <input type="checkbox" ${cat.allowCheck ? 'checked' : ''} onchange="updateCategoryCheck(${index}, this.checked)">
+                        Check
+                    </label>
+                    <select class="h-9 rounded border border-slate-300 px-2 text-xs" onchange="updateCategoryColor(${index}, this.value)">
+                        <option value="">Geen kleur</option>
+                        ${pastelThemes.map(theme => `<option value="${theme.key}" ${cat.color === theme.key ? 'selected' : ''}>${theme.label}</option>`).join('')}
+                    </select>
+                    <button onclick="removeCategory(${index})" class="text-red-400 hover:text-red-600" aria-label="Verwijder categorie">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                            <path fill-rule="evenodd" d="M8.25 3a.75.75 0 01.75-.75h2a.75.75 0 01.75.75V4h3.5a.75.75 0 010 1.5h-.456l-.764 9.173A2 2 0 0111.04 16H8.96a2 2 0 01-1.99-1.827L6.206 5.5H5.75a.75.75 0 010-1.5h3.5V3zm1.5 0V4h.5V3h-.5zM8.682 5.5l.725 8.703a.5.5 0 00.5.457h1.186a.5.5 0 00.5-.457l.725-8.703H8.682z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function updateCategoryName(index, value) {
+            categories[index].name = value;
+        }
+
+        function updateCategoryCheck(index, value) {
+            categories[index].allowCheck = value;
+        }
+
+        function updateCategoryColor(index, value) {
+            categories[index].color = value;
+        }
+
+        function addCategory() {
+            const input = document.getElementById('newCategoryName');
+            const value = input.value.trim();
+            if (!value) return;
+            categories.push({ name: value, allowCheck: true, color: '' });
+            input.value = '';
+            renderCategoryManager();
+        }
+
+        function removeCategory(index) {
+            categories.splice(index, 1);
+            renderCategoryManager();
+        }
+
+        function saveCategories() {
+            const renameMap = new Map();
+            document.querySelectorAll('#categoryList input[data-original]').forEach(input => {
+                const original = input.getAttribute('data-original');
+                const current = input.value.trim();
+                if (original && current && original !== current) {
+                    renameMap.set(original, current);
+                }
+            });
+
+            categories = categories
+                .map(cat => ({
+                    name: cat.name.trim(),
+                    allowCheck: cat.allowCheck !== false,
+                    color: cat.color || ''
+                }))
+                .filter(cat => cat.name.length);
+
+            const unique = new Map();
+            categories.forEach(cat => {
+                if (!unique.has(cat.name)) unique.set(cat.name, cat);
+            });
+            categories = Array.from(unique.values());
+            if (!categories.length) {
+                categories = [...defaultCategories];
+            }
+            if (renameMap.size) {
+                tasks = tasks.map(task => renameMap.has(task.type)
+                    ? { ...task, type: renameMap.get(task.type) }
+                    : task
+                );
+            }
+            saveCategoriesToServer();
+            renderCategoryOptions();
+            saveToServer();
+            renderTasks();
+            closeCategoryModal();
+            showSaveStatus(serverAvailable ? 'Opgeslagen (server)' : 'Niet opgeslagen');
+        }
+
+        function getOverlapIds() {
+            const parsed = tasks
+                .map(task => {
+                    if (!task.time || !task.duration) return null;
+                    const [h, m] = task.time.split(':').map(Number);
+                    const duration = parseInt(task.duration, 10);
+                    if (Number.isNaN(h) || Number.isNaN(m) || Number.isNaN(duration)) return null;
+                    const start = h * 60 + m;
+                    const end = start + duration;
+                    return { id: task.id, start, end };
+                })
+                .filter(Boolean);
+
+            const overlapIds = new Set();
+            for (let i = 0; i < parsed.length; i++) {
+                for (let j = i + 1; j < parsed.length; j++) {
+                    const a = parsed[i];
+                    const b = parsed[j];
+                    if (a.start < b.end && b.start < a.end) {
+                        overlapIds.add(a.id);
+                        overlapIds.add(b.id);
+                    }
+                }
+            }
+            return overlapIds;
+        }
+
+        function exportTasks() {
+            const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'jeroen_dagplanning_backup.json';
+            a.click();
+        }
+
+        function importTasks(event) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                tasks = JSON.parse(e.target.result);
+                saveAndRender();
+            };
+            reader.readAsText(event.target.files[0]);
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            const overlapIds = getOverlapIds();
+            const displayTasks = buildDisplayTasks(tasks);
+            displayTasks.forEach(task => {
+                if (!task || typeof task !== 'object') return;
+                if (task.isGap) {
+                    const gapRow = document.createElement('tr');
+                    gapRow.className = 'gap-row border-b border-slate-100';
+                    gapRow.innerHTML = `
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-6 py-3">
+                            <span class="text-sm font-semibold">${task.name}</span>
+                        </td>
+                        <td class="px-6 py-3 text-center text-sm">${formatDuration(task.duration)}</td>
+                        <td class="px-6 py-3"></td>
+                        <td class="px-6 py-3 actions-col ${actionsVisible ? '' : 'hidden'}"></td>
+                    `;
+                    list.appendChild(gapRow);
+                    return;
+                }
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', task.id);
+                const overlapClass = overlapIds.has(task.id) ? 'overlap' : '';
+                const baseClass = task.completed ? 'completed' : (overlapClass ? '' : 'bg-white');
+                row.className = `task-row border-b border-slate-100 ${baseClass} ${overlapClass}`;
+                
+                const categorySettings = getCategorySettings(task.type);
+                let typeClass = 'badge-small';
+                if (task.type === 'Gewoonte') typeClass = 'badge-habit';
+                else if (task.type === 'Focus') typeClass = 'badge-focus';
+                else if (task.type === 'Opruimen') typeClass = 'badge-clean';
+                else if (task.type === 'Relatie') typeClass = 'badge-relationship';
+
+                const rowColor = (!overlapClass && categorySettings.color) ? getCategoryColor(categorySettings.color) : '';
+                row.innerHTML = `
+                    <td class="px-4 py-4"><div class="drag-handle">⋮⋮</div></td>
+                    <td class="px-4 py-4 font-bold text-sm">${task.time || ''}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold task-text">${task.name}</span>
+                            <span class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase w-max ${typeClass}">${task.type}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center text-sm">${task.duration ? task.duration + 'm' : '-'}</td>
+                    <td class="px-6 py-4 text-center">
+                        ${categorySettings.allowCheck ? `
+                            <label class="check-label inline-flex items-center justify-center">
+                                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})" class="check-input sr-only">
+                                <span class="checkmark">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                        <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.42 0L3.296 9.22a1 1 0 111.42-1.42l3.308 3.308 6.54-6.54a1 1 0 011.42 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                            </label>
+                        ` : ''}
+                    </td>
+                    <td class="px-6 py-4 text-right actions-col ${actionsVisible ? '' : 'hidden'}">
+                        <div class="inline-flex items-center gap-3">
+                            <button onclick="openEditModal(${task.id})" class="text-slate-400 hover:text-slate-600" aria-label="Bewerk">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                    <path d="M13.586 2.586a2 2 0 012.828 2.828l-8.5 8.5a1 1 0 01-.39.242l-3 1a1 1 0 01-1.262-1.262l1-3a1 1 0 01.242-.39l8.5-8.5z" />
+                                    <path d="M11.5 4.5l4 4" />
+                                </svg>
+                            </button>
+                            <button onclick="deleteTask(${task.id})" class="text-red-400 hover:text-red-600" aria-label="Verwijder">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                    <path fill-rule="evenodd" d="M8.25 3a.75.75 0 01.75-.75h2a.75.75 0 01.75.75V4h3.5a.75.75 0 010 1.5h-.456l-.764 9.173A2 2 0 0111.04 16H8.96a2 2 0 01-1.99-1.827L6.206 5.5H5.75a.75.75 0 010-1.5h3.5V3zm1.5 0V4h.5V3h-.5zM8.682 5.5l.725 8.703a.5.5 0 00.5.457h1.186a.5.5 0 00.5-.457l.725-8.703H8.682z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                if (rowColor) {
+                    row.style.backgroundColor = rowColor;
+                    row.querySelectorAll('td').forEach(cell => {
+                        cell.style.backgroundColor = rowColor;
+                    });
+                }
+                list.appendChild(row);
+            });
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (!list) return;
+            list.innerHTML = '';
+            historyEntries.forEach((entry, index) => {
+                const row = document.createElement('div');
+                row.className = 'border border-slate-200 rounded-xl overflow-hidden bg-white';
+                row.innerHTML = `
+                    <div class="w-full flex items-center justify-between px-4 py-3">
+                        <button class="flex-1 flex items-center justify-between text-left" onclick="toggleHistoryRow(${index})">
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm font-semibold text-slate-700">${entry.date}</span>
+                            <span class="text-sm text-slate-500">${(entry.checkedTasks?.length || 0) + (entry.uncheckedTasks?.length || 0) > 0
+                                ? (entry.checkedCount === (entry.checkedTasks?.length || 0) + (entry.uncheckedTasks?.length || 0)
+                                    ? 'Alle taken afgerond — top gedaan!'
+                                    : `${entry.checkedCount} van de ${(entry.checkedTasks?.length || 0) + (entry.uncheckedTasks?.length || 0)} taken afgerond`)
+                                : 'Geen taken'}
+                            </span>
+                        </div>
+                        <svg id="historyChevron-${index}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-slate-400 transition-transform">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd" />
+                        </svg>
+                        </button>
+                        <button onclick="openHistoryEditModal(${index})" class="ml-3 text-slate-400 hover:text-slate-600" aria-label="Historie bewerken" title="Bewerk">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                                <path d="M13.586 2.586a2 2 0 012.828 2.828l-8.5 8.5a1 1 0 01-.39.242l-3 1a1 1 0 01-1.262-1.262l1-3a1 1 0 01.242-.39l8.5-8.5z" />
+                                <path d="M11.5 4.5l4 4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="historyBody-${index}" class="hidden px-4 pb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Afgevinkt</h4>
+                                <ul class="space-y-2 list-disc pl-5">
+                                    ${entry.checkedTasks.map(t => `<li class=\"text-sm text-slate-700\">${t.name}</li>`).join('') || '<li class="text-sm text-slate-400">Geen taken</li>'}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Niet afgevinkt</h4>
+                                <ul class="space-y-2 list-disc pl-5">
+                                    ${entry.uncheckedTasks.map(t => `<li class=\"text-sm text-slate-700\">${t.name}</li>`).join('') || '<li class="text-sm text-slate-400">Geen taken</li>'}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function toggleHistoryRow(index) {
+            const body = document.getElementById(`historyBody-${index}`);
+            const chevron = document.getElementById(`historyChevron-${index}`);
+            if (!body || !chevron) return;
+            const isHidden = body.classList.contains('hidden');
+            body.classList.toggle('hidden', !isHidden);
+            chevron.classList.toggle('rotate-180', isHidden);
+        }
+
+        let editingHistoryIndex = null;
+        function openHistoryEditModal(index) {
+            const entry = historyEntries[index];
+            if (!entry) return;
+            editingHistoryIndex = index;
+            renderHistoryEditLists(entry);
+            const modal = document.getElementById('historyEditModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            initHistorySortable();
+        }
+
+        function closeHistoryEditModal() {
+            const modal = document.getElementById('historyEditModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            editingHistoryIndex = null;
+        }
+
+        function renderHistoryEditLists(entry) {
+            const checkedList = document.getElementById('historyCheckedList');
+            const uncheckedList = document.getElementById('historyUncheckedList');
+            checkedList.innerHTML = '';
+            uncheckedList.innerHTML = '';
+            let orderIndex = 0;
+
+            const renderItem = (task) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700';
+                item.setAttribute('data-name', task.name || '');
+                item.setAttribute('data-time', task.time || '');
+                item.setAttribute('data-order', String(orderIndex++));
+                item.innerHTML = `
+                    <span>${task.time ? task.time + ' • ' : ''}${task.name}</span>
+                    <span class="text-xs text-slate-400">↔</span>
+                `;
+                return item;
+            };
+
+            (entry.checkedTasks || []).forEach(task => checkedList.appendChild(renderItem(task)));
+            (entry.uncheckedTasks || []).forEach(task => uncheckedList.appendChild(renderItem(task)));
+            enforceHistoryOrder();
+        }
+
+        function initHistorySortable() {
+            const checkedList = document.getElementById('historyCheckedList');
+            const uncheckedList = document.getElementById('historyUncheckedList');
+            if (!checkedList || !uncheckedList) return;
+            if (checkedList._sortable) checkedList._sortable.destroy();
+            if (uncheckedList._sortable) uncheckedList._sortable.destroy();
+
+            checkedList._sortable = Sortable.create(checkedList, {
+                group: 'history-edit',
+                animation: 150,
+                sort: false,
+                onAdd: enforceHistoryOrder
+            });
+            uncheckedList._sortable = Sortable.create(uncheckedList, {
+                group: 'history-edit',
+                animation: 150,
+                sort: false,
+                onAdd: enforceHistoryOrder
+            });
+        }
+
+        function enforceHistoryOrder() {
+            ['historyCheckedList', 'historyUncheckedList'].forEach(listId => {
+                const list = document.getElementById(listId);
+                if (!list) return;
+                const items = Array.from(list.children);
+                items.sort((a, b) => {
+                    const aOrder = parseInt(a.getAttribute('data-order') || '0', 10);
+                    const bOrder = parseInt(b.getAttribute('data-order') || '0', 10);
+                    return aOrder - bOrder;
+                });
+                items.forEach(item => list.appendChild(item));
+            });
+        }
+
+        function saveHistoryEdit() {
+            if (editingHistoryIndex === null) return;
+            const checkedTasks = Array.from(document.querySelectorAll('#historyCheckedList [data-name]')).map(item => ({
+                id: Date.now() + Math.random(),
+                name: item.getAttribute('data-name') || '',
+                time: item.getAttribute('data-time') || '',
+                duration: '',
+                type: ''
+            }));
+            const uncheckedTasks = Array.from(document.querySelectorAll('#historyUncheckedList [data-name]')).map(item => ({
+                id: Date.now() + Math.random(),
+                name: item.getAttribute('data-name') || '',
+                time: item.getAttribute('data-time') || '',
+                duration: '',
+                type: ''
+            }));
+            historyEntries[editingHistoryIndex] = {
+                ...historyEntries[editingHistoryIndex],
+                checkedTasks,
+                uncheckedTasks,
+                checkedCount: checkedTasks.length
+            };
+            saveHistoryToServer();
+            renderHistory();
+            closeHistoryEditModal();
+            showSaveStatus(serverAvailable ? 'Opgeslagen (server)' : 'Niet opgeslagen');
+        }
+
+        window.onload = init;
+
+        let actionsVisible = false;
+        function toggleActionsColumn() {
+            actionsVisible = !actionsVisible;
+            document.querySelectorAll('.actions-col').forEach(el => {
+                el.classList.toggle('hidden', !actionsVisible);
+            });
+            document.querySelectorAll('.backup-action').forEach(el => {
+                el.classList.toggle('hidden', !actionsVisible);
+            });
+            const btn = document.getElementById('actionsToggle');
+            if (btn) {
+                btn.setAttribute('aria-label', actionsVisible ? 'Acties verbergen' : 'Acties tonen');
+                btn.setAttribute('title', actionsVisible ? 'Acties verbergen' : 'Acties tonen');
+                btn.classList.toggle('opacity-70', actionsVisible);
+            }
+        }
+    </script>
+</body>
+</html>

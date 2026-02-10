@@ -1,0 +1,69 @@
+{
+  "entries": [
+    {
+      "date": "2026-01-27",
+      "checkedCount": 5,
+      "checkedTasks": [
+        {
+          "id": 1769578567141.4998,
+          "name": "Tandenpoetsen & opfrissen",
+          "time": "06:00",
+          "duration": "",
+          "type": ""
+        },
+        {
+          "id": 1769578567141.2336,
+          "name": "Keuken volledig opruimen",
+          "time": "19:45",
+          "duration": "",
+          "type": ""
+        },
+        {
+          "id": 1769578567141.339,
+          "name": "Bedenken: waarmee maak ik Laurien blij?",
+          "time": "",
+          "duration": "",
+          "type": ""
+        },
+        {
+          "id": 1769578567141.9382,
+          "name": "Woonkamer nalopen & Noenoe aan",
+          "time": "21:45",
+          "duration": "",
+          "type": ""
+        },
+        {
+          "id": 1769578567141.9316,
+          "name": "Klaarmaken voor bed",
+          "time": "22:00",
+          "duration": "",
+          "type": ""
+        }
+      ],
+      "uncheckedTasks": [
+        {
+          "id": 1769578567141.3499,
+          "name": "Ontbijt klaarmaken",
+          "time": "06:15",
+          "duration": "",
+          "type": ""
+        },
+        {
+          "id": 1769578567141.6992,
+          "name": "Ontbijten",
+          "time": "07:00",
+          "duration": "",
+          "type": ""
+        },
+        {
+          "id": 1769578567141.4893,
+          "name": "Lunch klaarmaken voor iedereen",
+          "time": "21:15",
+          "duration": "",
+          "type": ""
+        }
+      ]
+    }
+  ],
+  "lastResetDate": "2026-01-28"
+}

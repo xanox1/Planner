@@ -1,0 +1,114 @@
+[
+  {
+    "id": 101,
+    "time": "05:50",
+    "name": "Tandenpoetsen & opfrissen",
+    "duration": "10",
+    "type": "Gewoonte",
+    "completed": true
+  },
+  {
+    "id": 102,
+    "time": "06:15",
+    "name": "Ontbijt klaarmaken",
+    "duration": "30",
+    "type": "Kleine Taak",
+    "completed": false
+  },
+  {
+    "id": 1769572701135,
+    "time": "06:45",
+    "name": "Gezellig ontbijten",
+    "duration": "30",
+    "type": "Gezin",
+    "completed": false
+  },
+  {
+    "id": 1769575729808,
+    "time": "07:15",
+    "name": "Kinderen klaarmaken",
+    "duration": "20",
+    "type": "Gezin",
+    "completed": false
+  },
+  {
+    "id": 1769575421000,
+    "time": "08:00",
+    "name": "Werk",
+    "duration": "510",
+    "type": "Werk",
+    "completed": false
+  },
+  {
+    "id": 1769576455611,
+    "time": "17:00",
+    "name": "Eten koken",
+    "duration": "60",
+    "type": "Kleine Taak",
+    "completed": false
+  },
+  {
+    "id": 1769576492811,
+    "time": "18:00",
+    "name": "Samen Eten",
+    "duration": "60",
+    "type": "Gezin",
+    "completed": false
+  },
+  {
+    "id": 1769576515545,
+    "time": "19:00",
+    "name": "Kinderen op bed",
+    "duration": "45",
+    "type": "Gezin",
+    "completed": false
+  },
+  {
+    "id": 2,
+    "time": "19:45",
+    "name": "Keuken volledig opruimen",
+    "duration": "30",
+    "type": "Kleine Taak",
+    "completed": false
+  },
+  {
+    "id": 1769572593478,
+    "time": "21:15",
+    "name": "Samen lunch klaarmaken voor iedereen",
+    "duration": "15",
+    "type": "Gezin",
+    "completed": false
+  },
+  {
+    "id": 3,
+    "time": "21:30",
+    "name": "Waar kan ik Laurien mee helpen of blij maken?",
+    "duration": "10",
+    "type": "Focus",
+    "completed": false
+  },
+  {
+    "id": 1,
+    "time": "21:45",
+    "name": "Woonkamer nalopen & Noenoe aan",
+    "duration": "15",
+    "type": "Opruimen",
+    "completed": false
+  },
+  {
+    "id": 4,
+    "time": "22:00",
+    "name": "Klaarmaken voor bed",
+    "duration": "10",
+    "type": "Gewoonte",
+    "completed": false
+  },
+  {
+    "id": 1769575064479,
+    "time": "22:10",
+    "name": "Schrijven / Lezen / Ontspannen",
+    "duration": "15",
+    "type": "Focus",
+    "completed": false
+  }
+]
