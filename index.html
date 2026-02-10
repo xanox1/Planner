@@ -363,8 +363,9 @@
 
         function minutesToTime(minutes) {
             if (minutes === null || Number.isNaN(minutes)) return null;
-            const h = Math.floor(minutes / 60);
-            const m = minutes % 60;
+            const totalMinutes = ((minutes % 1440) + 1440) % 1440;
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         }
 

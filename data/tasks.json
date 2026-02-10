@@ -118,5 +118,13 @@
     "duration": "15",
     "type": "Focus",
     "completed": false
+  },
+  {
+    "id": 1770760605579,
+    "time": "23:00",
+    "name": "Late Night Task",
+    "duration": "120",
+    "type": "Kleine Taak",
+    "completed": false
   }
 ]
