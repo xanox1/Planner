@@ -375,7 +375,7 @@
             const startMinutes = parseTimeToMinutes(startTime);
             if (startMinutes === null) return startTime;
             const durationNum = parseInt(duration, 10);
-            if (Number.isNaN(durationNum) || durationNum < 0) return startTime;
+            if (Number.isNaN(durationNum) || durationNum <= 0) return startTime;
             const endMinutes = startMinutes + durationNum;
             const endTime = minutesToTime(endMinutes);
             return endTime ? `${startTime} - ${endTime}` : startTime;
