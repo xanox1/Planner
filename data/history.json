@@ -1,6 +1,231 @@
 {
   "entries": [
     {
+      "date": "2026-02-10",
+      "checkedCount": 0,
+      "checkedTasks": [],
+      "uncheckedTasks": [
+        {
+          "id": 101,
+          "name": "Tandenpoetsen & opfrissen",
+          "time": "05:50",
+          "duration": "10",
+          "type": "Gewoonte"
+        },
+        {
+          "id": 102,
+          "name": "Ontbijt klaarmaken",
+          "time": "06:15",
+          "duration": "30",
+          "type": "Kleine Taak"
+        },
+        {
+          "id": 1769572701135,
+          "name": "Ontbijten",
+          "time": "06:45",
+          "duration": "30",
+          "type": "Gezin"
+        },
+        {
+          "id": 1769575729808,
+          "name": "Kinderen klaarmaken",
+          "time": "07:15",
+          "duration": "20",
+          "type": "Gezin"
+        },
+        {
+          "id": 1770763334297,
+          "name": "Noeka Uitlaten",
+          "time": "07:35",
+          "duration": "20",
+          "type": "Kleine Taak"
+        },
+        {
+          "id": 1770763366766,
+          "name": "Klaarmaken voor werk",
+          "time": "07:55",
+          "duration": "5",
+          "type": "Gewoonte"
+        },
+        {
+          "id": 1769575421000,
+          "name": "Werk",
+          "time": "08:00",
+          "duration": "510",
+          "type": "Werk"
+        },
+        {
+          "id": 1769576455611,
+          "name": "Eten koken",
+          "time": "17:00",
+          "duration": "60",
+          "type": "Kleine Taak"
+        },
+        {
+          "id": 1769576492811,
+          "name": "Samen Eten",
+          "time": "18:00",
+          "duration": "60",
+          "type": "Gezin"
+        },
+        {
+          "id": 1769576515545,
+          "name": "Kinderen op bed",
+          "time": "19:00",
+          "duration": "45",
+          "type": "Gezin"
+        },
+        {
+          "id": 2,
+          "name": "Keuken volledig opruimen",
+          "time": "19:45",
+          "duration": "30",
+          "type": "Kleine Taak"
+        },
+        {
+          "id": 1769572593478,
+          "name": "Samen lunch klaarmaken voor iedereen",
+          "time": "21:15",
+          "duration": "15",
+          "type": "Gezin"
+        },
+        {
+          "id": 3,
+          "name": "Waar kan ik Laurien mee helpen of blij maken?",
+          "time": "21:30",
+          "duration": "10",
+          "type": "Focus"
+        },
+        {
+          "id": 1,
+          "name": "Woonkamer nalopen & Noenoe aan",
+          "time": "21:45",
+          "duration": "15",
+          "type": "Opruimen"
+        },
+        {
+          "id": 4,
+          "name": "Klaarmaken voor bed",
+          "time": "22:00",
+          "duration": "10",
+          "type": "Gewoonte"
+        },
+        {
+          "id": 1769575064479,
+          "name": "Schrijven / Lezen / Ontspannen",
+          "time": "22:10",
+          "duration": "15",
+          "type": "Focus"
+        }
+      ]
+    },
+    {
+      "date": "2026-02-09",
+      "checkedCount": 1,
+      "checkedTasks": [
+        {
+          "id": 101,
+          "name": "Tandenpoetsen & opfrissen",
+          "time": "05:50",
+          "duration": "10",
+          "type": "Gewoonte"
+        }
+      ],
+      "uncheckedTasks": [
+        {
+          "id": 102,
+          "name": "Ontbijt klaarmaken",
+          "time": "06:15",
+          "duration": "30",
+          "type": "Kleine Taak"
+        },
+        {
+          "id": 1769572701135,
+          "name": "Gezellig ontbijten",
+          "time": "06:45",
+          "duration": "30",
+          "type": "Gezin"
+        },
+        {
+          "id": 1769575729808,
+          "name": "Kinderen klaarmaken",
+          "time": "07:15",
+          "duration": "20",
+          "type": "Gezin"
+        },
+        {
+          "id": 1769575421000,
+          "name": "Werk",
+          "time": "08:00",
+          "duration": "510",
+          "type": "Werk"
+        },
+        {
+          "id": 1769576455611,
+          "name": "Eten koken",
+          "time": "17:00",
+          "duration": "60",
+          "type": "Kleine Taak"
+        },
+        {
+          "id": 1769576492811,
+          "name": "Samen Eten",
+          "time": "18:00",
+          "duration": "60",
+          "type": "Gezin"
+        },
+        {
+          "id": 1769576515545,
+          "name": "Kinderen op bed",
+          "time": "19:00",
+          "duration": "45",
+          "type": "Gezin"
+        },
+        {
+          "id": 2,
+          "name": "Keuken volledig opruimen",
+          "time": "19:45",
+          "duration": "30",
+          "type": "Kleine Taak"
+        },
+        {
+          "id": 1769572593478,
+          "name": "Samen lunch klaarmaken voor iedereen",
+          "time": "21:15",
+          "duration": "15",
+          "type": "Gezin"
+        },
+        {
+          "id": 3,
+          "name": "Waar kan ik Laurien mee helpen of blij maken?",
+          "time": "21:30",
+          "duration": "10",
+          "type": "Focus"
+        },
+        {
+          "id": 1,
+          "name": "Woonkamer nalopen & Noenoe aan",
+          "time": "21:45",
+          "duration": "15",
+          "type": "Opruimen"
+        },
+        {
+          "id": 4,
+          "name": "Klaarmaken voor bed",
+          "time": "22:00",
+          "duration": "10",
+          "type": "Gewoonte"
+        },
+        {
+          "id": 1769575064479,
+          "name": "Schrijven / Lezen / Ontspannen",
+          "time": "22:10",
+          "duration": "15",
+          "type": "Focus"
+        }
+      ]
+    },
+    {
       "date": "2026-01-27",
       "checkedCount": 5,
       "checkedTasks": [
@@ -65,5 +290,5 @@
       ]
     }
   ],
-  "lastResetDate": "2026-01-28"
+  "lastResetDate": "2026-02-11"
 }

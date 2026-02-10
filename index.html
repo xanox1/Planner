@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamische Dagplanning</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body {
-            background-color: #f1f5f9;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+            font-family: 'Manrope', system-ui, -apple-system, sans-serif;
         }
         .task-row:hover .action-btns { opacity: 1; }
         .completed { background-color: #f8fafc; color: #94a3b8; }
@@ -46,74 +49,190 @@
         .check-label { cursor: pointer; }
         .check-input:focus-visible + .checkmark { outline: 2px solid #a5b4fc; outline-offset: 2px; }
         .gap-row td { background-color: #f1f5f9; color: #64748b; font-style: italic; }
+        .timeline-dot {
+            position: absolute;
+            left: -5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px rgba(226, 232, 240, 1);
+        }
+        .timeline-cap {
+            position: absolute;
+            left: -6px;
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            border: 2px solid white;
+            background: #cbd5e1;
+            box-shadow: 0 0 0 2px rgba(226, 232, 240, 1);
+        }
+        .timeline-hour {
+            position: absolute;
+            left: 0;
+            transform: translateY(-50%);
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.08em;
+        }
+        .admin-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid #c7d2fe;
+            background: #4f46e5;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+        .admin-btn:hover { background: #4338ca; border-color: #a5b4fc; }
+        .admin-btn--ghost {
+            background: transparent;
+            color: #4f46e5;
+            border-color: #cbd5f5;
+        }
+        .admin-btn--ghost:hover { background: #eef2ff; color: #4338ca; }
+        .admin-btn--icon { width: 32px; padding: 0; justify-content: center; }
+        .admin-icon { width: 14px; height: 14px; }
+        .admin-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .admin-float { position: absolute; right: 0; top: 0; }
+        .admin-toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: nowrap;
+            flex-shrink: 0;
+            flex-direction: row-reverse;
+        }
+        .fade-up { animation: fadeUp 0.6s ease both; }
+        .fade-up-delay { animation-delay: 0.12s; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="h-screen overflow-hidden">
 
-    <div class="max-w-5xl mx-auto">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-            <!-- Header -->
-            <div class="bg-indigo-700 p-8 text-white">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div>
-                        <h1 class="text-3xl font-extrabold tracking-tight">Dagplanning Jeroen</h1>
-                        <div class="mt-2 flex items-center gap-2">
-                            <p class="text-indigo-100 opacity-90 italic" id="quoteDisplay">Inspiratie wordt geladen...</p>
-                            <button onclick="loadQuote()" class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-500 border border-indigo-400" aria-label="Nieuwe quote" title="Nieuwe quote">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-white">
-                                    <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.186 2.36.75.75 0 00-1.06 1.06 7 7 0 0011.682-3.002h1.702a.75.75 0 00.53-1.28l-2.5-2.5a.75.75 0 00-1.06 0l-2.5 2.5a.75.75 0 00.53 1.28h1.362zM4.688 8.576a5.5 5.5 0 019.186-2.36.75.75 0 001.06-1.06A7 7 0 003.252 8.158H1.55a.75.75 0 00-.53 1.28l2.5 2.5a.75.75 0 001.06 0l2.5-2.5a.75.75 0 00-.53-1.28H4.688z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-end">
-                        <p class="text-lg font-medium" id="dateDisplay"></p>
-                        <div class="flex gap-2 mt-2">
-                            <button id="actionsToggle" onclick="toggleActionsColumn()" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 transition" aria-label="Acties tonen" title="Acties tonen">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-white">
-                                    <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm0 5.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 14a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
-                                </svg>
-                            </button>
-                            <button onclick="exportTasks()" class="backup-action hidden text-[10px] bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-2 py-1 rounded font-bold uppercase tracking-wider transition">Back-up downloaden</button>
-                            <button onclick="document.getElementById('importFile').click()" class="backup-action hidden text-[10px] bg-indigo-600 hover:bg-indigo-500 border border-indigo-400 px-2 py-1 rounded font-bold uppercase tracking-wider transition">Back-up inladen</button>
-                            <input type="file" id="importFile" class="hidden" accept=".json" onchange="importTasks(event)">
+    <div class="h-full p-4 md:p-8">
+    <div class="max-w-6xl mx-auto h-full">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch h-full">
+            <aside class="md:col-span-4 self-stretch">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-up h-full flex flex-col">
+                    <div class="p-6 flex-1">
+                        <div class="relative h-full min-h-[420px]" id="timelineBody">
+                            <div class="absolute left-4 top-4 bottom-4 w-px bg-slate-200"></div>
+                            <div id="timelineHours" class="absolute left-0 top-4 bottom-4 w-12"></div>
+                            <div id="timelineDots" class="absolute left-4 top-4 bottom-4 w-px relative"></div>
+                            <div class="timeline-cap" style="bottom: 10px;"></div>
+                            <div id="timelineBalloon" class="absolute left-8 -translate-y-1/2">
+                                <div class="relative rounded-2xl border border-indigo-100 bg-white px-4 py-3 shadow-sm">
+                                    <span class="absolute -left-2 top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 border border-indigo-100 bg-white"></span>
+                                    <div class="flex items-center gap-3">
+                                        <span id="timelineBalloonDot" class="h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+                                        <div>
+                                            <div id="timelineBalloonName" class="text-sm font-semibold text-slate-800">Geen actieve taak</div>
+                                            <div id="timelineBalloonTime" class="text-xs text-slate-500"></div>
+                                            <div id="timelineBalloonType" class="text-[11px] font-semibold uppercase tracking-widest text-slate-400"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </aside>
 
-            <div class="p-6 md:p-8">
+            <div class="md:col-span-8 h-full flex flex-col gap-6 min-h-0">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-up fade-up-delay flex flex-col min-h-0 flex-1">
+                    <!-- Header -->
+                    <div class="bg-indigo-700 p-8 text-white">
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div>
+                                <h1 class="text-3xl font-extrabold tracking-tight">Dagplanning Jeroen</h1>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <p class="text-indigo-100 opacity-90 italic" id="quoteDisplay">Inspiratie wordt geladen...</p>
+                                    <button onclick="loadQuote()" class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-500 border border-indigo-400" aria-label="Nieuwe quote" title="Nieuwe quote">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-white">
+                                            <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.186 2.36.75.75 0 00-1.06 1.06 7 7 0 0011.682-3.002h1.702a.75.75 0 00.53-1.28l-2.5-2.5a.75.75 0 00-1.06 0l-2.5 2.5a.75.75 0 00.53 1.28h1.362zM4.688 8.576a5.5 5.5 0 019.186-2.36.75.75 0 001.06-1.06A7 7 0 003.252 8.158H1.55a.75.75 0 00-.53 1.28l2.5 2.5a.75.75 0 001.06 0l2.5-2.5a.75.75 0 00-.53-1.28H4.688z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <p class="text-lg font-medium" id="dateDisplay"></p>
+                                <div class="admin-toolbar mt-2">
+                                    <button id="actionsToggle" onclick="toggleConfigPanel()" class="admin-btn admin-btn--icon" aria-label="Configuratie" title="Configuratie">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="admin-icon">
+                                            <path fill-rule="evenodd" d="M11.078 2.25c-.217 0-.433.033-.646.1l-1.13.354a.75.75 0 00-.503.7V4.1a6.992 6.992 0 00-1.732.999l-.68-.392a.75.75 0 00-.868.107l-.822.822a.75.75 0 00-.107.868l.392.68a6.992 6.992 0 00-1 1.732H3.7a.75.75 0 00-.7.503l-.354 1.13a1.75 1.75 0 000 1.002l.354 1.13a.75.75 0 00.7.503h.698c.23.64.567 1.24 1 1.732l-.392.68a.75.75 0 00.107.868l.822.822a.75.75 0 00.868.107l.68-.392a6.992 6.992 0 001.732.999v.698a.75.75 0 00.503.7l1.13.354c.323.1.679.1 1.002 0l1.13-.354a.75.75 0 00.503-.7v-.698a6.992 6.992 0 001.732-.999l.68.392a.75.75 0 00.868-.107l.822-.822a.75.75 0 00.107-.868l-.392-.68a6.992 6.992 0 001-1.732h.698a.75.75 0 00.7-.503l.354-1.13c.1-.323.1-.679 0-1.002l-.354-1.13a.75.75 0 00-.7-.503h-.698a6.992 6.992 0 00-1-1.732l.392-.68a.75.75 0 00-.107-.868l-.822-.822a.75.75 0 00-.868-.107l-.68.392a6.992 6.992 0 00-1.732-.999V3.404a.75.75 0 00-.503-.7l-1.13-.354a1.74 1.74 0 00-.356-.1zM10 7.25a2.75 2.75 0 100 5.5 2.75 2.75 0 000-5.5z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <button onclick="openCategoryModal()" class="admin-btn admin-btn--icon admin-btn--ghost admin-only admin-hidden" aria-label="Type beheren" title="Type beheren">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="admin-icon">
+                                            <path d="M13.586 2.586a2 2 0 012.828 2.828l-8.5 8.5a1 1 0 01-.39.242l-3 1a1 1 0 01-1.262-1.262l1-3a1 1 0 01.242-.39l8.5-8.5z" />
+                                            <path d="M11.5 4.5l4 4" />
+                                        </svg>
+                                    </button>
+                                    <button onclick="exportTasks()" class="backup-action admin-btn admin-btn--icon admin-hidden" aria-label="Back-up downloaden" title="Back-up downloaden">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="admin-icon">
+                                            <path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v6.19l1.72-1.72a.75.75 0 111.06 1.06l-3 3a.75.75 0 01-1.06 0l-3-3a.75.75 0 111.06-1.06l1.72 1.72V3.75A.75.75 0 0110 3zM4.5 13.5a.75.75 0 01.75-.75h9.5a.75.75 0 010 1.5h-9.5a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <button onclick="document.getElementById('importFile').click()" class="backup-action admin-btn admin-btn--icon admin-hidden" aria-label="Back-up inladen" title="Back-up inladen">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="admin-icon">
+                                            <path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V9.81l-1.72 1.72a.75.75 0 11-1.06-1.06l3-3a.75.75 0 011.06 0l3 3a.75.75 0 11-1.06 1.06l-1.72-1.72v6.44A.75.75 0 0110 17zM4.5 6.5a.75.75 0 01.75-.75h9.5a.75.75 0 010 1.5h-9.5a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importTasks(event)">
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="p-6 md:p-8 flex flex-col min-h-0 flex-1">
                 <!-- Task Input Form -->
-                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-8">
+                <div id="addTaskPanel" class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6 hidden">
                     <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Nieuwe taak toevoegen</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
                         <div class="md:col-span-1">
                             <label class="block text-xs font-bold text-slate-700 mb-1">TIJD</label>
-                            <input type="time" id="taskTime" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                            <input type="time" id="taskTime" class="w-full rounded-lg border-slate-300 p-2 border text-sm">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-slate-700 mb-1">ACTIVITEIT</label>
-                            <input type="text" id="taskName" placeholder="Bijv. Wandelen" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                            <input type="text" id="taskName" placeholder="Bijv. Wandelen" class="w-full rounded-lg border-slate-300 p-2 border text-sm">
                         </div>
                         <div class="md:col-span-1">
                             <label class="block text-xs font-bold text-slate-700 mb-1">DUUR (MIN)</label>
-                            <input type="number" id="taskDuration" placeholder="30" class="w-full rounded-lg border-slate-300 p-2.5 border">
+                            <input type="number" id="taskDuration" placeholder="30" class="w-full rounded-lg border-slate-300 p-2 border text-sm">
                         </div>
-                        <div class="md:col-span-1">
-                            <div class="flex items-center justify-between">
+                        <div class="md:col-span-2">
+                            <div class="flex items-center">
                                 <label class="block text-xs font-bold text-slate-700 mb-1">TYPE</label>
-                                <button onclick="openCategoryModal()" class="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Beheer</button>
                             </div>
-                            <select id="taskType" class="w-full rounded-lg border-slate-300 p-2.5 border"></select>
+                            <select id="taskType" class="w-full rounded-lg border-slate-300 p-2 border text-sm"></select>
                         </div>
-                        <div class="flex items-end">
-                            <button onclick="addTask()" class="w-full bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition font-bold shadow-md">Toevoegen</button>
+                        <div class="md:col-span-1 flex items-end justify-end">
+                            <button onclick="addTask()" class="admin-btn admin-btn--icon" aria-label="Taak toevoegen" title="Taak toevoegen" style="width: 40px; height: 40px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="admin-icon">
+                                    <path fill-rule="evenodd" d="M10 4.5a.75.75 0 01.75.75v4h4a.75.75 0 010 1.5h-4v4a.75.75 0 01-1.5 0v-4h-4a.75.75 0 010-1.5h4v-4A.75.75 0 0110 4.5z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Table -->
-                <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+                <div class="overflow-hidden rounded-xl border border-slate-200 shadow-sm flex-1 min-h-0">
+                    <div class="h-full overflow-y-auto overscroll-contain">
                     <table class="min-w-full divide-y divide-slate-200" id="planningTable">
                         <thead class="bg-slate-50">
                             <tr>
@@ -127,24 +246,47 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-200" id="taskList"></tbody>
                     </table>
+                    </div>
                 </div>
 
-                <div class="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <button onclick="resetAllTasks()" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition">Reset Status</button>
                     <span id="saveStatus" class="text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full opacity-0 transition-opacity uppercase font-bold tracking-widest">Opgeslagen</span>
+                </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 flex-shrink-0 flex flex-col max-h-[18vh] min-h-[96px]">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wider">Dagelijkse historie</h2>
+                        </div>
+                        <button onclick="openHistoryModal()" class="admin-btn admin-btn--icon" aria-label="Bekijk historie" title="Bekijk historie">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="admin-icon">
+                                <path d="M4.75 3.5A1.75 1.75 0 016.5 1.75h7a1.75 1.75 0 011.75 1.75v13a1.75 1.75 0 01-1.75 1.75h-7A1.75 1.75 0 014.75 16.5v-13z" />
+                                <path d="M7 6.25A.75.75 0 017.75 5.5h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 6.25zM7 9.25a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5A.75.75 0 017 9.25z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="px-6 py-3 flex-1 overflow-y-auto">
+                        <div id="historyList"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 
-    <div class="max-w-5xl mx-auto mt-8">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
-                <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wider">Dagelijkse historie</h2>
-                <p class="text-xs text-slate-400 mt-1">Overzicht per dag met afgevinkte en niet-afgevinkte taken.</p>
+    <!-- History Overview Modal -->
+    <div id="historyModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="absolute inset-0 modal-backdrop" onclick="closeHistoryModal()"></div>
+        <div class="relative bg-white w-full max-w-4xl mx-4 rounded-2xl shadow-2xl border border-slate-200">
+            <div class="bg-indigo-700 text-white px-6 py-4 rounded-t-2xl flex items-center justify-between">
+                <h3 class="text-lg font-bold">Historie overzicht</h3>
+                <button onclick="closeHistoryModal()" class="text-indigo-100 hover:text-white">✕</button>
             </div>
             <div class="p-6">
-                <div class="space-y-4" id="historyList"></div>
+                <div class="space-y-4" id="historyModalList"></div>
             </div>
         </div>
     </div>
@@ -287,9 +429,11 @@
             renderCategoryOptions();
             renderTasks();
             renderHistory();
+            updateTimeline();
             initSortable();
             checkDailyReset();
             scheduleMidnightReset();
+            setInterval(updateTimeline, 30000);
         }
 
         async function loadQuote() {
@@ -420,6 +564,136 @@
             if (hours && mins) return `${hours}u ${mins}m`;
             if (hours) return `${hours}u`;
             return `${mins}m`;
+        }
+
+        function formatTimeRange(time, duration) {
+            if (!time) return '';
+            const startMinutes = parseTimeToMinutes(time);
+            const durationMinutes = parseInt(duration, 10);
+            if (startMinutes === null || Number.isNaN(durationMinutes)) return formatTimeNoLeadingZero(time);
+            const endMinutes = (startMinutes + durationMinutes) % (24 * 60);
+            return `${formatMinutesToTime(startMinutes)} - ${formatMinutesToTime(endMinutes)}`;
+        }
+
+        function formatTimeNoLeadingZero(time) {
+            const [hours, mins] = time.split(':');
+            if (typeof hours === 'undefined' || typeof mins === 'undefined') return time;
+            const cleanHours = String(parseInt(hours, 10));
+            if (cleanHours === 'NaN') return time;
+            return `${cleanHours}:${String(mins).padStart(2, '0')}`;
+        }
+
+        function formatMinutesToTime(total) {
+            const hours = Math.floor(total / 60) % 24;
+            const mins = total % 60;
+            return `${String(hours)}:${String(mins).padStart(2, '0')}`;
+        }
+
+        function getTimedTasks() {
+            return tasks
+                .map(task => {
+                    const start = parseTimeToMinutes(task.time);
+                    const duration = parseInt(task.duration, 10);
+                    if (start === null || Number.isNaN(duration)) return null;
+                    return { ...task, start, end: start + duration };
+                })
+                .filter(Boolean)
+                .sort((a, b) => a.start - b.start);
+        }
+
+        function getTimelineStartMinute(timed) {
+            if (!timed.length) return 0;
+            const last = timed[timed.length - 1];
+            return last.end % (24 * 60);
+        }
+
+        function getRelativeMinute(minute, startMinute) {
+            const dayMinutes = 24 * 60;
+            return (minute - startMinute + dayMinutes) % dayMinutes;
+        }
+
+        function getTaskDotColor(task) {
+            const category = getCategorySettings(task.type);
+            const categoryColor = getCategoryColor(category.color);
+            if (categoryColor) return categoryColor;
+            return '#94a3b8';
+        }
+
+        function renderTimelineDots(timed, startMinute) {
+            const dots = document.getElementById('timelineDots');
+            if (!dots) return;
+            dots.innerHTML = '';
+            const dayMinutes = 24 * 60;
+            timed.forEach(task => {
+                const relative = getRelativeMinute(task.start, startMinute);
+                const topPercent = (relative / dayMinutes) * 100;
+                const dot = document.createElement('div');
+                dot.className = 'timeline-dot';
+                dot.style.top = `${topPercent}%`;
+                dot.style.backgroundColor = getTaskDotColor(task);
+                dot.title = `${formatTimeRange(task.time, task.duration)} • ${task.name}`;
+                dots.appendChild(dot);
+            });
+        }
+
+        function renderTimelineHours(startMinute) {
+            const hours = document.getElementById('timelineHours');
+            if (!hours) return;
+            hours.innerHTML = '';
+            const dayMinutes = 24 * 60;
+            for (let hour = 0; hour < 24; hour += 2) {
+                const absolute = hour * 60;
+                const relative = getRelativeMinute(absolute, startMinute);
+                const topPercent = (relative / dayMinutes) * 100;
+                const label = document.createElement('div');
+                label.className = 'timeline-hour';
+                label.style.top = `${topPercent}%`;
+                label.textContent = `${hour}`;
+                hours.appendChild(label);
+            }
+        }
+
+        function updateTimeline() {
+            const balloon = document.getElementById('timelineBalloon');
+            const balloonDot = document.getElementById('timelineBalloonDot');
+            const balloonName = document.getElementById('timelineBalloonName');
+            const balloonTime = document.getElementById('timelineBalloonTime');
+            const balloonType = document.getElementById('timelineBalloonType');
+            if (!balloon || !balloonDot || !balloonName || !balloonTime || !balloonType) return;
+
+            const now = new Date();
+            const nowMinutes = now.getHours() * 60 + now.getMinutes();
+            const timed = getTimedTasks();
+            const timelineStart = getTimelineStartMinute(timed);
+            const relativeNow = getRelativeMinute(nowMinutes, timelineStart);
+            const topPercent = (relativeNow / (24 * 60)) * 100;
+            balloon.style.top = `${topPercent}%`;
+            renderTimelineDots(timed, timelineStart);
+            renderTimelineHours(timelineStart);
+
+            const current = timed.find(task => nowMinutes >= task.start && nowMinutes < task.end) || null;
+            const nowLabel = formatTimeNoLeadingZero(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+            const sleepDuration = timed.length ? getRelativeMinute(timed[0].start, timelineStart) : 0;
+            const isSleep = !current && timed.length && relativeNow < sleepDuration;
+
+            if (current) {
+                balloonName.textContent = current.name || 'Actieve taak';
+                balloonTime.textContent = formatTimeRange(current.time, current.duration);
+                balloonType.textContent = current.type || '';
+                balloonDot.style.backgroundColor = getTaskDotColor(current);
+            } else if (isSleep) {
+                balloonName.textContent = 'Slaap';
+                const sleepStart = timelineStart;
+                const sleepEnd = timed[0].start;
+                balloonTime.textContent = `${formatMinutesToTime(sleepStart)} - ${formatMinutesToTime(sleepEnd)}`;
+                balloonType.textContent = '';
+                balloonDot.style.backgroundColor = '#94a3b8';
+            } else {
+                balloonName.textContent = timed.length ? 'Geen actieve taak' : 'Geen planning';
+                balloonTime.textContent = `Nu ${nowLabel}`;
+                balloonType.textContent = '';
+                balloonDot.style.backgroundColor = '#6366f1';
+            }
         }
 
         function toggleTask(id) {
@@ -584,6 +858,7 @@
         function saveAndRender() {
             saveToStorage();
             renderTasks();
+            updateTimeline();
         }
 
         function getDateKey(date = new Date()) {
@@ -624,6 +899,7 @@
             saveToServer();
             saveHistoryToServer();
             renderTasks();
+            updateTimeline();
         }
 
         function scheduleMidnightReset() {
@@ -640,6 +916,7 @@
                 saveToServer();
                 renderHistory();
                 renderTasks();
+                updateTimeline();
                 setInterval(() => {
                     const newDateKey = getYesterdayKey();
                     historyEntries.unshift(buildHistoryEntry(newDateKey));
@@ -649,6 +926,7 @@
                     saveToServer();
                     renderHistory();
                     renderTasks();
+                    updateTimeline();
                 }, 24 * 60 * 60 * 1000);
             }, ms);
         }
@@ -884,7 +1162,7 @@
                 const rowColor = (!overlapClass && categorySettings.color) ? getCategoryColor(categorySettings.color) : '';
                 row.innerHTML = `
                     <td class="px-4 py-4"><div class="drag-handle">⋮⋮</div></td>
-                    <td class="px-4 py-4 font-bold text-sm">${task.time || ''}</td>
+                    <td class="px-4 py-4 font-bold text-sm">${formatTimeRange(task.time, task.duration)}</td>
                     <td class="px-6 py-4">
                         <div class="flex flex-col">
                             <span class="text-sm font-semibold task-text">${task.name}</span>
@@ -932,8 +1210,40 @@
 
         function renderHistory() {
             const list = document.getElementById('historyList');
-            if (!list) return;
-            list.innerHTML = '';
+            if (list) {
+                list.innerHTML = '';
+                const yesterdayKey = getYesterdayKey();
+                const entry = historyEntries.find(item => item.date === yesterdayKey) || historyEntries[0];
+                if (!entry) {
+                    list.innerHTML = '<p class="text-sm text-slate-400">Geen historie beschikbaar.</p>';
+                } else {
+                    const total = (entry.checkedTasks?.length || 0) + (entry.uncheckedTasks?.length || 0);
+                    const statusText = total
+                        ? (entry.checkedCount === total
+                            ? 'Alle taken afgerond — top gedaan!'
+                            : `${entry.checkedCount} van de ${total} taken afgerond`)
+                        : 'Geen taken';
+                    const checkedCount = entry.checkedTasks?.length || 0;
+                    const uncheckedCount = entry.uncheckedTasks?.length || 0;
+                    const summary = document.createElement('div');
+                    summary.className = 'border border-slate-200 rounded-xl overflow-hidden bg-white';
+                    summary.innerHTML = `
+                        <div class="px-4 py-3 flex flex-wrap items-center gap-3 text-sm">
+                            <span class="font-semibold text-slate-700">${entry.date}</span>
+                            <span class="text-slate-500">${statusText}</span>
+                            <span class="ml-auto flex items-center gap-3 text-xs font-semibold text-slate-600">
+                                <span>Afgevinkt: ${checkedCount}</span>
+                                <span>Niet afgevinkt: ${uncheckedCount}</span>
+                            </span>
+                        </div>
+                    `;
+                    list.appendChild(summary);
+                }
+            }
+
+            const modalList = document.getElementById('historyModalList');
+            if (!modalList) return;
+            modalList.innerHTML = '';
             historyEntries.forEach((entry, index) => {
                 const row = document.createElement('div');
                 row.className = 'border border-slate-200 rounded-xl overflow-hidden bg-white';
@@ -977,8 +1287,22 @@
                         </div>
                     </div>
                 `;
-                list.appendChild(row);
+                modalList.appendChild(row);
             });
+        }
+
+        function openHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         function toggleHistoryRow(index) {
@@ -1100,18 +1424,25 @@
         window.onload = init;
 
         let actionsVisible = false;
-        function toggleActionsColumn() {
+        function toggleConfigPanel() {
             actionsVisible = !actionsVisible;
             document.querySelectorAll('.actions-col').forEach(el => {
                 el.classList.toggle('hidden', !actionsVisible);
             });
             document.querySelectorAll('.backup-action').forEach(el => {
-                el.classList.toggle('hidden', !actionsVisible);
+                el.classList.toggle('admin-hidden', !actionsVisible);
             });
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.classList.toggle('admin-hidden', !actionsVisible);
+            });
+            const addTaskPanel = document.getElementById('addTaskPanel');
+            if (addTaskPanel) {
+                addTaskPanel.classList.toggle('hidden', !actionsVisible);
+            }
             const btn = document.getElementById('actionsToggle');
             if (btn) {
-                btn.setAttribute('aria-label', actionsVisible ? 'Acties verbergen' : 'Acties tonen');
-                btn.setAttribute('title', actionsVisible ? 'Acties verbergen' : 'Acties tonen');
+                btn.setAttribute('aria-label', actionsVisible ? 'Configuratie verbergen' : 'Configuratie tonen');
+                btn.setAttribute('title', actionsVisible ? 'Configuratie verbergen' : 'Configuratie tonen');
                 btn.classList.toggle('opacity-70', actionsVisible);
             }
         }

@@ -5,7 +5,7 @@
     "name": "Tandenpoetsen & opfrissen",
     "duration": "10",
     "type": "Gewoonte",
-    "completed": true
+    "completed": false
   },
   {
     "id": 102,
@@ -18,7 +18,7 @@
   {
     "id": 1769572701135,
     "time": "06:45",
-    "name": "Gezellig ontbijten",
+    "name": "Ontbijten",
     "duration": "30",
     "type": "Gezin",
     "completed": false
@@ -29,6 +29,22 @@
     "name": "Kinderen klaarmaken",
     "duration": "20",
     "type": "Gezin",
+    "completed": false
+  },
+  {
+    "id": 1770763334297,
+    "time": "07:35",
+    "name": "Noeka Uitlaten",
+    "duration": "20",
+    "type": "Kleine Taak",
+    "completed": false
+  },
+  {
+    "id": 1770763366766,
+    "time": "07:55",
+    "name": "Klaarmaken voor werk",
+    "duration": "5",
+    "type": "Gewoonte",
     "completed": false
   },
   {
