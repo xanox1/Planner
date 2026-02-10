@@ -361,6 +361,26 @@
             return h * 60 + m;
         }
 
+        function minutesToTime(minutes) {
+            if (minutes === null || Number.isNaN(minutes)) return null;
+            // Handle midnight crossing: (x % 1440 + 1440) % 1440 ensures result is always 0-1439
+            const totalMinutes = ((minutes % 1440) + 1440) % 1440;
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        function getTimeRange(startTime, duration) {
+            if (!startTime || !duration) return startTime || '';
+            const startMinutes = parseTimeToMinutes(startTime);
+            if (startMinutes === null) return startTime;
+            const durationNum = parseInt(duration, 10);
+            if (Number.isNaN(durationNum) || durationNum <= 0) return startTime;
+            const endMinutes = startMinutes + durationNum;
+            const endTime = minutesToTime(endMinutes);
+            return endTime ? `${startTime} - ${endTime}` : startTime;
+        }
+
         function buildDisplayTasks(list) {
             const display = [];
             for (let i = 0; i < list.length; i++) {
@@ -884,7 +904,7 @@
                 const rowColor = (!overlapClass && categorySettings.color) ? getCategoryColor(categorySettings.color) : '';
                 row.innerHTML = `
                     <td class="px-4 py-4"><div class="drag-handle">⋮⋮</div></td>
-                    <td class="px-4 py-4 font-bold text-sm">${task.time || ''}</td>
+                    <td class="px-4 py-4 font-bold text-sm">${getTimeRange(task.time, task.duration)}</td>
                     <td class="px-6 py-4">
                         <div class="flex flex-col">
                             <span class="text-sm font-semibold task-text">${task.name}</span>

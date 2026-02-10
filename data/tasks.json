@@ -24,6 +24,14 @@
     "completed": false
   },
   {
+    "id": 1770760546386,
+    "time": "07:00",
+    "name": "Morning Exercise",
+    "duration": "20",
+    "type": "Kleine Taak",
+    "completed": false
+  },
+  {
     "id": 1769575729808,
     "time": "07:15",
     "name": "Kinderen klaarmaken",
@@ -109,6 +117,14 @@
     "name": "Schrijven / Lezen / Ontspannen",
     "duration": "15",
     "type": "Focus",
+    "completed": false
+  },
+  {
+    "id": 1770760605579,
+    "time": "23:00",
+    "name": "Late Night Task",
+    "duration": "120",
+    "type": "Kleine Taak",
     "completed": false
   }
 ]
