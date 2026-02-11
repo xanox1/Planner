@@ -12,7 +12,7 @@
     "time": "06:15",
     "name": "Ontbijt klaarmaken",
     "duration": "30",
-    "type": "Kleine Taak",
+    "type": "Taak",
     "completed": false
   },
   {
@@ -36,7 +36,7 @@
     "time": "07:35",
     "name": "Noeka Uitlaten",
     "duration": "20",
-    "type": "Kleine Taak",
+    "type": "Taak",
     "completed": false
   },
   {
@@ -60,7 +60,7 @@
     "time": "17:00",
     "name": "Eten koken",
     "duration": "60",
-    "type": "Kleine Taak",
+    "type": "Taak",
     "completed": false
   },
   {
@@ -84,7 +84,7 @@
     "time": "19:45",
     "name": "Keuken volledig opruimen",
     "duration": "30",
-    "type": "Kleine Taak",
+    "type": "Taak",
     "completed": false
   },
   {
@@ -108,7 +108,7 @@
     "time": "21:45",
     "name": "Woonkamer nalopen & Noenoe aan",
     "duration": "15",
-    "type": "Opruimen",
+    "type": "Gewoonte",
     "completed": false
   },
   {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamische Dagplanning</title>
+    <title>Routine planner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -58,6 +58,32 @@
             border: 2px solid white;
             box-shadow: 0 0 0 2px rgba(226, 232, 240, 1);
         }
+        .timeline-item {
+            position: absolute;
+            left: -6px;
+            transform: translateY(-50%);
+            pointer-events: auto;
+        }
+        .timeline-item .timeline-dot {
+            position: static;
+            box-shadow: 0 0 0 2px rgba(226, 232, 240, 1);
+            cursor: pointer;
+        }
+        .balance-chart {
+            width: 148px;
+            height: 148px;
+            border-radius: 999px;
+            background: conic-gradient(#e2e8f0 0deg, #e2e8f0 360deg);
+            border: 8px solid #f8fafc;
+            box-shadow: inset 0 0 0 1px #e2e8f0;
+        }
+        .balance-swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            display: inline-block;
+            box-shadow: 0 0 0 2px rgba(226, 232, 240, 0.8);
+        }
         .timeline-cap {
             position: absolute;
             left: -6px;
@@ -77,6 +103,114 @@
             color: #94a3b8;
             letter-spacing: 0.08em;
         }
+        .timeline-balloon {
+            left: 18px;
+        }
+        .sleep-mode {
+        }
+        .sleep-overlay {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+            transition: opacity 0.4s ease;
+        }
+        .sleep-mode .sleep-overlay {
+            opacity: 1;
+        }
+        .sleep-sky {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 70%);
+        }
+        .sleep-stars {
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle, rgba(255, 255, 255, 0.9) 1px, transparent 2px),
+                radial-gradient(circle, rgba(255, 255, 255, 0.6) 1px, transparent 2px),
+                radial-gradient(circle, rgba(255, 255, 255, 0.75) 1px, transparent 2px);
+            background-size: 120px 120px, 180px 180px, 240px 240px;
+            background-position: 20px 10px, 80px 40px, 40px 90px;
+            animation: starTwinkle 6s ease-in-out infinite;
+            mix-blend-mode: screen;
+        }
+        .sleep-moon {
+            position: relative;
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #e2e8f0 70%);
+            box-shadow: 0 0 24px rgba(255, 255, 255, 0.6);
+            animation: moonFloat 5s ease-in-out infinite;
+        }
+        .sleep-moon::before {
+            content: '';
+            position: absolute;
+            left: 26px;
+            top: 36px;
+            width: 10px;
+            height: 3px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.8);
+            box-shadow: 22px 0 0 rgba(148, 163, 184, 0.8);
+        }
+        .sleep-zzz {
+            position: absolute;
+            left: 58px;
+            top: -8px;
+            font-size: 29px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: rgba(248, 250, 252, 0.7);
+            width: 72px;
+            height: 46px;
+            text-align: left;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .sleep-indicator {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 84px;
+            height: 84px;
+        }
+        .sleep-zzz span {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            opacity: 0;
+            animation: zzzDrift 4.5s ease-in-out infinite;
+            animation-fill-mode: both;
+            transform-origin: left center;
+        }
+        .sleep-zzz span:nth-child(2) {
+            animation-delay: 2.05s;
+        }
+        .sleep-zzz span {
+            --dx: 36px;
+            --dy: -28px;
+            --s0: 0.7;
+            --s1: 1.35;
+        }
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        @keyframes moonFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @keyframes zzzDrift {
+            0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+            15% { opacity: 1; transform: translate(10px, -8px) scale(0.8); }
+            45% { opacity: 1; transform: translate(24px, -18px) scale(1.05); }
+            70% { opacity: 0.8; transform: translate(40px, -30px) scale(1.3); }
+            100% { opacity: 0; transform: translate(52px, -40px) scale(1.45); }
+        }
         .admin-btn {
             display: inline-flex;
             align-items: center;
@@ -84,8 +218,8 @@
             height: 32px;
             padding: 0 10px;
             border-radius: 999px;
-            border: 1px solid #c7d2fe;
-            background: #4f46e5;
+            border: 1px solid #6c8087;
+            background: #6c8087;
             color: #ffffff;
             font-size: 10px;
             font-weight: 700;
@@ -93,13 +227,13 @@
             letter-spacing: 0.12em;
             transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
-        .admin-btn:hover { background: #4338ca; border-color: #a5b4fc; }
+        .admin-btn:hover { background: #5a6c72; border-color: #5a6c72; }
         .admin-btn--ghost {
             background: transparent;
-            color: #4f46e5;
-            border-color: #cbd5f5;
+            color: #6c8087;
+            border-color: #9fb0b6;
         }
-        .admin-btn--ghost:hover { background: #eef2ff; color: #4338ca; }
+        .admin-btn--ghost:hover { background: #e8eef0; color: #5a6c72; }
         .admin-btn--icon { width: 32px; padding: 0; justify-content: center; }
         .admin-icon { width: 14px; height: 14px; }
         .admin-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -125,15 +259,28 @@
     <div class="h-full p-4 md:p-8">
     <div class="max-w-6xl mx-auto h-full">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch h-full">
-            <aside class="md:col-span-4 self-stretch">
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-up h-full flex flex-col">
+            <aside class="md:col-span-4 self-stretch flex flex-col gap-6">
+                <div id="timelineSection" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-up flex-1 flex flex-col relative">
+                    <div class="sleep-overlay">
+                        <div class="sleep-sky"></div>
+                        <div class="sleep-stars"></div>
+                        <div class="sleep-indicator">
+                            <div class="sleep-moon"></div>
+                            <div class="sleep-zzz">
+                                <span>Z</span>
+                                <span>Z</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="p-6 flex-1">
                         <div class="relative h-full min-h-[420px]" id="timelineBody">
                             <div class="absolute left-4 top-4 bottom-4 w-px bg-slate-200"></div>
-                            <div id="timelineHours" class="absolute left-0 top-4 bottom-4 w-12"></div>
-                            <div id="timelineDots" class="absolute left-4 top-4 bottom-4 w-px relative"></div>
+                            <div id="timelineHours" class="absolute -left-2 top-4 bottom-4 w-14"></div>
+                            <div id="timelineDots" class="absolute left-4 top-4 bottom-4 w-px">
+                                <div id="timelineItems" class="relative h-full"></div>
+                            </div>
                             <div class="timeline-cap" style="bottom: 10px;"></div>
-                            <div id="timelineBalloon" class="absolute left-8 -translate-y-1/2">
+                            <div id="timelineBalloon" class="timeline-balloon absolute -translate-y-1/2">
                                 <div class="relative rounded-2xl border border-indigo-100 bg-white px-4 py-3 shadow-sm">
                                     <span class="absolute -left-2 top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 border border-indigo-100 bg-white"></span>
                                     <div class="flex items-center gap-3">
@@ -149,18 +296,29 @@
                         </div>
                     </div>
                 </div>
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 flex-shrink-0 flex flex-col">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wider">Balans</h2>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 flex items-center gap-5">
+                        <div id="balanceChart" class="balance-chart" aria-label="Balance chart"></div>
+                        <div id="balanceLegend" class="flex-1 space-y-2"></div>
+                    </div>
+                </div>
             </aside>
 
             <div class="md:col-span-8 h-full flex flex-col gap-6 min-h-0">
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-up fade-up-delay flex flex-col min-h-0 flex-1">
                     <!-- Header -->
-                    <div class="bg-indigo-700 p-8 text-white">
+                    <div class="bg-[#6c8087] p-8 text-white">
                         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
-                                <h1 class="text-3xl font-extrabold tracking-tight">Dagplanning Jeroen</h1>
+                                <h1 class="text-3xl font-extrabold tracking-tight">Routine planner</h1>
                                 <div class="mt-2 flex items-center gap-2">
                                     <p class="text-indigo-100 opacity-90 italic" id="quoteDisplay">Inspiratie wordt geladen...</p>
-                                    <button onclick="loadQuote()" class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-500 border border-indigo-400" aria-label="Nieuwe quote" title="Nieuwe quote">
+                                    <button onclick="loadQuote()" class="w-6 h-6 inline-flex items-center justify-center rounded-full bg-[#6c8087] hover:bg-[#5a6c72] border border-[#9fb0b6]" aria-label="Nieuwe quote" title="Nieuwe quote">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5 text-white">
                                             <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.186 2.36.75.75 0 00-1.06 1.06 7 7 0 0011.682-3.002h1.702a.75.75 0 00.53-1.28l-2.5-2.5a.75.75 0 00-1.06 0l-2.5 2.5a.75.75 0 00.53 1.28h1.362zM4.688 8.576a5.5 5.5 0 019.186-2.36.75.75 0 001.06-1.06A7 7 0 003.252 8.158H1.55a.75.75 0 00-.53 1.28l2.5 2.5a.75.75 0 001.06 0l2.5-2.5a.75.75 0 00-.53-1.28H4.688z" clip-rule="evenodd" />
                                         </svg>
@@ -250,7 +408,7 @@
                 </div>
 
                 <div class="mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <button onclick="resetAllTasks()" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition">Reset Status</button>
+                    <button onclick="resetAllTasks()" class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition admin-only admin-hidden">Reset Status</button>
                     <span id="saveStatus" class="text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full opacity-0 transition-opacity uppercase font-bold tracking-widest">Opgeslagen</span>
                 </div>
                     </div>
@@ -418,6 +576,7 @@
         let categories = [...defaultCategories];
         let historyEntries = [];
         let lastResetDate = null;
+        let hoveredTaskId = null;
 
         async function init() {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -430,6 +589,7 @@
             renderTasks();
             renderHistory();
             updateTimeline();
+            renderBalance();
             initSortable();
             checkDailyReset();
             scheduleMidnightReset();
@@ -443,11 +603,28 @@
                 if (!response.ok) throw new Error('Quote fetch failed');
                 const data = await response.json();
                 if (Array.isArray(data) && data[0]?.q && data[0]?.a) {
-                    quoteEl.textContent = `“${data[0].q}” — ${data[0].a}`;
+                    const translated = await translateToDutch(data[0].q);
+                    quoteEl.textContent = `“${translated}” — ${data[0].a}`;
                     return;
                 }
             } catch (error) {
                 quoteEl.textContent = '“Maak vandaag bewust.”';
+            }
+        }
+
+        async function translateToDutch(text) {
+            try {
+                const url = 'https://translate.googleapis.com/translate_a/single'
+                    + '?client=gtx&sl=auto&tl=nl&dt=t&q=' + encodeURIComponent(text);
+                const response = await fetch(url, { cache: 'no-store' });
+                if (!response.ok) throw new Error('Translate fetch failed');
+                const data = await response.json();
+                const translated = Array.isArray(data?.[0])
+                    ? data[0].map(part => part[0]).join('')
+                    : '';
+                return translated || text;
+            } catch (error) {
+                return text;
             }
         }
 
@@ -612,6 +789,19 @@
             return (minute - startMinute + dayMinutes) % dayMinutes;
         }
 
+        function getTimelineWindow(timed) {
+            if (!timed.length) {
+                return { start: 0, end: 24 * 60, duration: 24 * 60 };
+            }
+            const start = timed[0].start;
+            const end = timed[timed.length - 1].end;
+            return { start, end, duration: Math.max(end - start, 1) };
+        }
+
+        function clampTimelinePercent(value) {
+            return Math.min(98, Math.max(2, value));
+        }
+
         function getTaskDotColor(task) {
             const category = getCategorySettings(task.type);
             const categoryColor = getCategoryColor(category.color);
@@ -619,36 +809,125 @@
             return '#94a3b8';
         }
 
-        function renderTimelineDots(timed, startMinute) {
-            const dots = document.getElementById('timelineDots');
-            if (!dots) return;
-            dots.innerHTML = '';
-            const dayMinutes = 24 * 60;
+        function showTimelineBalloon(task, window) {
+            const balloon = document.getElementById('timelineBalloon');
+            const balloonDot = document.getElementById('timelineBalloonDot');
+            const balloonName = document.getElementById('timelineBalloonName');
+            const balloonTime = document.getElementById('timelineBalloonTime');
+            const balloonType = document.getElementById('timelineBalloonType');
+            if (!balloon || !balloonDot || !balloonName || !balloonTime || !balloonType) return;
+
+            const relative = task.start - window.start;
+            const topPercent = clampTimelinePercent((relative / window.duration) * 100);
+            balloon.style.top = `${topPercent}%`;
+            balloon.classList.remove('hidden');
+            balloonName.textContent = task.name || 'Actieve taak';
+            balloonTime.textContent = formatTimeRange(task.time, task.duration);
+            balloonType.textContent = task.type || '';
+            balloonDot.style.backgroundColor = getTaskDotColor(task);
+        }
+
+        function getBalanceColor(type) {
+            if (type === 'Vrije tijd') return '#e2e8f0';
+            if (type === 'Slaap') return '#c7d2fe';
+            return getTaskDotColor({ type });
+        }
+
+        function renderBalance() {
+            const chart = document.getElementById('balanceChart');
+            const legend = document.getElementById('balanceLegend');
+            if (!chart || !legend) return;
+
+            const totals = new Map();
+            const displayTasks = buildDisplayTasks(tasks);
+            displayTasks.forEach(task => {
+                const type = task.isGap ? task.name : (task.type || 'Onbekend');
+                const duration = parseInt(task.duration, 10);
+                const weight = Number.isNaN(duration) || duration <= 0 ? 1 : duration;
+                totals.set(type, (totals.get(type) || 0) + weight);
+            });
+
+            const entries = Array.from(totals.entries()).sort((a, b) => b[1] - a[1]);
+            if (!entries.length) {
+                chart.style.background = 'conic-gradient(#e2e8f0 0deg, #e2e8f0 360deg)';
+                legend.innerHTML = '<div class="text-xs text-slate-400">Geen taken</div>';
+                return;
+            }
+
+            const total = entries.reduce((sum, item) => sum + item[1], 0);
+            let current = 0;
+            const slices = [];
+            legend.innerHTML = '';
+
+            entries.forEach(([type, value]) => {
+                const color = getBalanceColor(type);
+                const start = (current / total) * 360;
+                current += value;
+                const end = (current / total) * 360;
+                slices.push(`${color} ${start}deg ${end}deg`);
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 text-xs font-semibold text-slate-600';
+                const percent = Math.round((value / total) * 100);
+                row.innerHTML = `
+                    <span class="balance-swatch" style="background:${color}"></span>
+                    <span>${type}</span>
+                    <span class="ml-auto text-slate-400">${percent}%</span>
+                `;
+                legend.appendChild(row);
+            });
+
+            chart.style.background = `conic-gradient(${slices.join(', ')})`;
+        }
+
+        function renderTimelineDots(timed, window) {
+            const items = document.getElementById('timelineItems');
+            if (!items) return;
+            items.innerHTML = '';
+            const height = items.clientHeight || 0;
+
             timed.forEach(task => {
-                const relative = getRelativeMinute(task.start, startMinute);
-                const topPercent = (relative / dayMinutes) * 100;
+                const relative = getRelativeMinute(task.start, window.start);
+                const topPercent = clampTimelinePercent((relative / window.duration) * 100);
+
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.style.top = `${topPercent}%`;
+                item.title = `${formatTimeRange(task.time, task.duration)} - ${task.name}`;
+
                 const dot = document.createElement('div');
                 dot.className = 'timeline-dot';
-                dot.style.top = `${topPercent}%`;
                 dot.style.backgroundColor = getTaskDotColor(task);
-                dot.title = `${formatTimeRange(task.time, task.duration)} • ${task.name}`;
-                dots.appendChild(dot);
+                dot.addEventListener('mouseenter', () => {
+                    hoveredTaskId = task.id;
+                    showTimelineBalloon(task, window);
+                });
+                dot.addEventListener('mouseleave', () => {
+                    hoveredTaskId = null;
+                    updateTimeline();
+                });
+
+                item.appendChild(dot);
+                items.appendChild(item);
             });
         }
 
-        function renderTimelineHours(startMinute) {
+        function renderTimelineHours(window) {
             const hours = document.getElementById('timelineHours');
             if (!hours) return;
             hours.innerHTML = '';
-            const dayMinutes = 24 * 60;
-            for (let hour = 0; hour < 24; hour += 2) {
+            const startHour = Math.floor(window.start / 60);
+            const endHour = Math.ceil(window.end / 60);
+            const step = window.duration <= 6 * 60 ? 1 : 2;
+            for (let hour = startHour; hour <= endHour; hour += step) {
                 const absolute = hour * 60;
-                const relative = getRelativeMinute(absolute, startMinute);
-                const topPercent = (relative / dayMinutes) * 100;
+                const relative = absolute - window.start;
+                if (relative < 0 || relative > window.duration) continue;
+                const topPercent = clampTimelinePercent((relative / window.duration) * 100);
                 const label = document.createElement('div');
                 label.className = 'timeline-hour';
                 label.style.top = `${topPercent}%`;
-                label.textContent = `${hour}`;
+                label.textContent = `${(hour + 24) % 24}`;
                 hours.appendChild(label);
             }
         }
@@ -664,35 +943,30 @@
             const now = new Date();
             const nowMinutes = now.getHours() * 60 + now.getMinutes();
             const timed = getTimedTasks();
-            const timelineStart = getTimelineStartMinute(timed);
-            const relativeNow = getRelativeMinute(nowMinutes, timelineStart);
-            const topPercent = (relativeNow / (24 * 60)) * 100;
-            balloon.style.top = `${topPercent}%`;
-            renderTimelineDots(timed, timelineStart);
-            renderTimelineHours(timelineStart);
+            const window = getTimelineWindow(timed);
+            const timelineSection = document.getElementById('timelineSection');
+            const inWindow = timed.length && nowMinutes >= window.start && nowMinutes <= window.end;
+            if (timelineSection) {
+                timelineSection.classList.toggle('sleep-mode', !inWindow);
+            }
+            renderTimelineDots(timed, window);
+            renderTimelineHours(window);
 
             const current = timed.find(task => nowMinutes >= task.start && nowMinutes < task.end) || null;
-            const nowLabel = formatTimeNoLeadingZero(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
-            const sleepDuration = timed.length ? getRelativeMinute(timed[0].start, timelineStart) : 0;
-            const isSleep = !current && timed.length && relativeNow < sleepDuration;
-
             if (current) {
+                if (hoveredTaskId) return;
+                const relativeNow = nowMinutes - window.start;
+                const topPercent = clampTimelinePercent((relativeNow / window.duration) * 100);
+                balloon.style.top = `${topPercent}%`;
+                balloon.classList.remove('hidden');
                 balloonName.textContent = current.name || 'Actieve taak';
                 balloonTime.textContent = formatTimeRange(current.time, current.duration);
                 balloonType.textContent = current.type || '';
                 balloonDot.style.backgroundColor = getTaskDotColor(current);
-            } else if (isSleep) {
-                balloonName.textContent = 'Slaap';
-                const sleepStart = timelineStart;
-                const sleepEnd = timed[0].start;
-                balloonTime.textContent = `${formatMinutesToTime(sleepStart)} - ${formatMinutesToTime(sleepEnd)}`;
-                balloonType.textContent = '';
-                balloonDot.style.backgroundColor = '#94a3b8';
             } else {
-                balloonName.textContent = timed.length ? 'Geen actieve taak' : 'Geen planning';
-                balloonTime.textContent = `Nu ${nowLabel}`;
-                balloonType.textContent = '';
-                balloonDot.style.backgroundColor = '#6366f1';
+                if (!hoveredTaskId) {
+                    balloon.classList.add('hidden');
+                }
             }
         }
 
@@ -859,6 +1133,7 @@
             saveToStorage();
             renderTasks();
             updateTimeline();
+            renderBalance();
         }
 
         function getDateKey(date = new Date()) {
